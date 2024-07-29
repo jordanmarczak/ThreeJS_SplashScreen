@@ -1,9 +1,13 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { SSAARenderPass } from 'three/addons/postprocessing/SSAARenderPass.js';
 
-
-/**CURSOR */
+// Cursor
 const cursor = {
     x: 0,
     y: 0
@@ -13,7 +17,6 @@ window.addEventListener('mousemove', (event) => {
     cursor.x = event.clientX / sizes.width - 0.5
     cursor.y = - (event.clientY / sizes.height - 0.5)
 } )
-
 
 
 // Canvas
@@ -37,6 +40,7 @@ gltfLoader.load(
 )
 
 
+
 // Sizes
 const sizes = {
     width: window.innerWidth,
@@ -53,6 +57,10 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix()
     renderer.setSize(sizes.width, sizes.height)
 
+    //Update effect composer
+    effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    effectComposer.setSize(sizes.width, sizes.height)
+
 })
 
 
@@ -65,7 +73,7 @@ const scene = new THREE.Scene()
 // Camera
 const camera = new THREE.PerspectiveCamera(3, sizes.width / sizes.height)
 camera.position.x = 5
-camera.position.y = 40
+camera.position.y = 44
 camera.position.z = 22
 
 const lookatPos = new THREE.Vector3(0,4,-4)
@@ -75,9 +83,8 @@ scene.add(camera)
 const camX = camera.position.x
 const camY = camera.position.y
 
-/**
- * Lights
- */
+
+// Lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 3.5)
 scene.add(ambientLight)
 
@@ -89,7 +96,32 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height)
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.outputEncoding = THREE.LinearEncoding;
 
+
+// Post-Processing
+const effectComposer = new EffectComposer(renderer)
+effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+effectComposer.setSize(sizes.width, sizes.height)
+
+const renderPass = new RenderPass(scene, camera)
+effectComposer.addPass(renderPass)
+
+const bokehPass = new BokehPass( scene, camera, {
+    focus: 47.2,
+    aperture: .0014,
+    maxblur: 0.01
+} )
+
+
+
+const ssaaRenderPassP = new SSAARenderPass( scene, camera );
+effectComposer.addPass( ssaaRenderPassP );
+
+
+
+const outputPass = new OutputPass()
+effectComposer.addPass( outputPass );
 
 // Animate
 const clock = new THREE.Clock()
@@ -103,7 +135,8 @@ const tick = () =>
     camera.lookAt(lookatPos)
 
     // Render
-    renderer.render(scene, camera)
+    //renderer.render(scene, camera)
+    effectComposer.render()
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
