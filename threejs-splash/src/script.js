@@ -22,6 +22,24 @@ window.addEventListener('mousemove', (event) => {
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
+// Env Map
+const textureLoader = new THREE.TextureLoader()
+const textureEnv = textureLoader.load(
+    '/textures/grad.jpg',
+    () =>
+    {
+        console.log('load')
+        console.log(textureEnv)
+    },
+    () => {
+        console.log('progress')
+    },
+    () => {
+        console.log('error')
+}
+)
+const wackMap = textureLoader.load('/textures/wack.jpg')
+
 
 
 // GLTF Loader
@@ -34,10 +52,28 @@ gltfLoader.setDRACOLoader( dracoLoader );
 gltfLoader.load(
     '/models/Clock/Clock_Splash.gltf',
 	function ( gltf ) {
-		scene.add( gltf.scene );
+        gltf.scene.traverse((o) => {
+            if(o.isMesh) {
+                if(o.name==="ClearPlate"){
+                    console.log("Hire me")
+                    const glassy_mat = new THREE.MeshStandardMaterial({
+                        transparent: true,
+                        opacity: .5,
+                        map: wackMap,
+                        alphaMap: textureEnv,
+                        roughness: 0.6,
+                        side: THREE.DoubleSide,
+                        })
+                    o.material = glassy_mat
+                }
+            }
+        })
+		scene.add( gltf.scene )
         console.log(gltf)
-    }
+    },
 )
+
+
 
 
 
@@ -68,6 +104,8 @@ window.addEventListener('resize', () => {
 // Scene
 const scene = new THREE.Scene()
 
+scene.background = textureEnv
+//scene.environment = envyMap
 
 
 // Camera
@@ -109,16 +147,13 @@ effectComposer.addPass(renderPass)
 
 const bokehPass = new BokehPass( scene, camera, {
     focus: 47.2,
-    aperture: .0014,
+    aperture: .02,
     maxblur: 0.01
 } )
 
 
-
 const ssaaRenderPassP = new SSAARenderPass( scene, camera );
 effectComposer.addPass( ssaaRenderPassP );
-
-
 
 const outputPass = new OutputPass()
 effectComposer.addPass( outputPass );
