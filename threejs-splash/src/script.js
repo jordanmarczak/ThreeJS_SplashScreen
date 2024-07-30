@@ -147,13 +147,15 @@ effectComposer.addPass(renderPass)
 
 const bokehPass = new BokehPass( scene, camera, {
     focus: 47.2,
-    aperture: .02,
+    aperture: .002,
     maxblur: 0.01
 } )
 
 
+
 const ssaaRenderPassP = new SSAARenderPass( scene, camera );
 effectComposer.addPass( ssaaRenderPassP );
+effectComposer.addPass( bokehPass );
 
 const outputPass = new OutputPass()
 effectComposer.addPass( outputPass );
