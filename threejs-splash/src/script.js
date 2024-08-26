@@ -38,40 +38,6 @@ const textureEnv = textureLoader.load(
         console.log('error')
 }
 )
-const wackMap = textureLoader.load('/textures/wack.jpg')
-
-
-
-// GLTF Loader
-const gltfLoader = new GLTFLoader()
-
-const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath( '/draco/' );
-gltfLoader.setDRACOLoader( dracoLoader );
-
-gltfLoader.load(
-    '/models/Clock/Clock_Splash.gltf',
-	function ( gltf ) {
-        gltf.scene.traverse((o) => {
-            if(o.isMesh) {
-                if(o.name==="ClearPlate"){
-                    console.log("Hire me")
-                    const glassy_mat = new THREE.MeshStandardMaterial({
-                        transparent: true,
-                        opacity: .5,
-                        map: wackMap,
-                        alphaMap: textureEnv,
-                        roughness: 0.6,
-                        side: THREE.DoubleSide,
-                        })
-                    o.material = glassy_mat
-                }
-            }
-        })
-		scene.add( gltf.scene )
-        console.log(gltf)
-    },
-)
 
 
 
@@ -103,9 +69,43 @@ window.addEventListener('resize', () => {
 
 // Scene
 const scene = new THREE.Scene()
+scene.background = new THREE.Color( 0xffffff );
 
-scene.background = textureEnv
-//scene.environment = envyMap
+
+// GLTF Loader
+const gltfLoader = new GLTFLoader()
+
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath( '/draco/' );
+gltfLoader.setDRACOLoader( dracoLoader );
+
+gltfLoader.load(
+    '/models/Clock/Clock_Splash.gltf',
+	function ( gltf ) {
+        gltf.scene.traverse((o) => {
+            if(o.isMesh) {
+                if(o.name==="ClearPlate"){
+                    console.log("Hire me")
+                    const wackMap = textureLoader.load('/textures/wack.jpg')
+                    const glassy_mat = new THREE.MeshStandardMaterial({
+                        transparent: true,
+                        opacity: .5,
+                        map: wackMap,
+                        alphaMap: textureEnv,
+                        roughness: 0.6,
+                        side: THREE.DoubleSide,
+                        })
+                    o.material = glassy_mat
+                }
+            }
+        })
+		scene.add( gltf.scene )
+        console.log(gltf)
+    },
+)
+
+
+
 
 
 // Camera
@@ -167,8 +167,8 @@ const tick = () =>
 {
 
     //set cam orbit
-    camera.position.x = camX + cursor.x * 0.77
-    camera.position.y = camY + cursor.y * 0.77
+    camera.position.x = camX + cursor.x * 1.22
+    camera.position.y = camY + cursor.y * 1.22
     camera.lookAt(lookatPos)
 
     // Render
